@@ -8,7 +8,7 @@ var ITEM_HEIGHT   = 48,
     INPUT_PADDING = 2; // Padding provided by `md-input-container`
 
 function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $window,
-                             $animate, $rootElement, $attrs, $q, $log, $mdLiveAnnouncer) {
+                             $animate, $rootElement, $attrs, $q, $log, $mdLiveAnnouncer, $timeout) { // <-- CPAE timeout added
 
   // Internal Variables.
   var ctrl                 = this,
@@ -377,7 +377,7 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming,
    * When the mouse button is released, send focus back to the input field.
    */
   function onMouseup () {
-    elements.input.focus();
+    // elements.input.focus(); // <-- CPAE deactivated
   }
 
   /**
@@ -489,6 +489,10 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming,
       }
     });
 
+    // CPAE BEGIN
+    var isIOS = navigator.userAgent.match(/iOS|iPad|iPhone|iPod/g) || navigator.platform.match(/iOS|iPad|iPhone|iPod/g) ? true : false;
+    if (isIOS) window.scroll(0, window.innerHeight / 2); // fix for positioning after keyboard open
+    // CPAE END
   }
 
   /**
@@ -498,8 +502,34 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming,
     hasFocus = false;
 
     if (!noBlur) {
-      ctrl.hidden = shouldHide();
+      // ctrl.hidden = shouldHide(); // <-- CPAE deactivated
       evalAttr('ngBlur', { $event: $event });
+            
+      // CPAE BEGIN
+      var isIOS = navigator.userAgent.match(/iOS|iPad|iPhone|iPod/g) || navigator.platform.match(/iOS|iPad|iPhone|iPod/g) ? true : false;
+      if (!noBlur && isIOS) {
+          //window.scroll(0, 0); // fix for positioning after keyboard close <- seems to work now
+
+          ctrl.hidden = (ctrl.loading && !hasMatches()) || (hasSelection()) || !shouldShow();
+
+          //if (ctrl.loading && !hasMatches()) return true; // Hide while loading initial matches
+          //else if (hasSelection()) return true;           // Hide if there is already a selection
+          ////////else if (!hasFocus) return true;                // Hide if the input does not have focus
+          //else return !shouldShow();                      // Defer to standard show logic
+
+          var onSecondClick = function () {
+              document.removeEventListener("click", onSecondClick);
+              $timeout(function () {
+                  ctrl.hidden = shouldHide();
+              });
+          };
+
+          setTimeout(function () {
+              document.addEventListener("click", onSecondClick);
+          }, 10);
+
+      }
+      // CPAE END
     }
   }
 
