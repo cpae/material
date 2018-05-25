@@ -358,7 +358,7 @@ function MdTabsController ($scope, $element, $window, $mdConstant, $mdTabInkRipp
    * Slides the tabs over approximately one page forward.
    */
   function nextPage () {
-    if (!ctrl.canPageForward()) { return }
+    if (!ctrl.canPageForward()) { return; }
 
     var newOffset = MdTabsPaginationService.increasePageOffset(getElements(), ctrl.offsetLeft);
 
@@ -369,7 +369,7 @@ function MdTabsController ($scope, $element, $window, $mdConstant, $mdTabInkRipp
    * Slides the tabs over approximately one page backward.
    */
   function previousPage () {
-    if (!ctrl.canPageBack()) { return }
+    if (!ctrl.canPageBack()) { return; }
 
     var newOffset = MdTabsPaginationService.decreasePageOffset(getElements(), ctrl.offsetLeft);
 
@@ -683,7 +683,7 @@ function MdTabsController ($scope, $element, $window, $mdConstant, $mdTabInkRipp
         index = ctrl[ key ];
     for (newIndex = index + inc;
          ctrl.tabs[ newIndex ] && ctrl.tabs[ newIndex ].scope.disabled;
-         newIndex += inc) {}
+         newIndex += inc) { /* do nothing */ }
 
     newIndex = (index + inc + ctrl.tabs.length) % ctrl.tabs.length;
 
